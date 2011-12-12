@@ -32,8 +32,9 @@ using namespace std;
 //To to be used for assigning ID's
 int stotal=0;
 //List of all alive strains
-vector<CStrain *> allstrains;
+vector<CStrain*> allstrains;
 list<CStrain*> strains;
+vector<CStrain*> deadstrains; 
 CStrain *top=NULL;
 //time
 double t;
@@ -70,14 +71,26 @@ void Initial_Conditions(){
 //and add to the list
 
 double EucWeightedSumM0(CStrain *s, double chi(double) ){
-	vector<CStrain*>::iterator it;
-	double M=0., d=0.;
-	for(it=allstrains.begin(); it!=allstrains.end(); it++){
-		d=(s->coord-(*it)->coord).abs();
-		if(d>rmax)continue;
-		M+=chi(d)*(*it)->accN;
-	}
-	return M;
+        list<CStrain*>::iterator it;
+        double M=0., d=0.;
+        for(it=strains.begin(); it!=strains.end(); it++){
+                d=(s->coord-(*it)->coord).abs();
+                if(d>rmax)continue;
+                M+=chi(d)*(*it)->accN;
+        }
+
+        vector<CStrain*>::reverse_iterator rit;
+        for(rit=deadstrains.rbegin(); rit!=deadstrains.rend(); rit++){
+                if(t-(*rit)->deathtime>lifespan)break;
+                d=(s->coord-(*it)->coord).abs();
+                if(d>rmax)continue;
+                M+=chi(d)*(*it)->accN;
+        }
+
+	assert(strains.size()+deadstrains.size()==stotal);
+	assert(strains.size()+deadstrains.size()==allstrains.size());
+	
+        return M;
 }
 
 double EucWeightedSumM(CStrain *s, double chi(double) ){
@@ -119,7 +132,8 @@ void Genetic_Drift(){
 
 		if(rnd<1) {
 			//cerr << "random number smaller than 1" << "    " << rnd << "    " << endl;
-			(*it)->die();
+			(*it)->die(t);
+			deadstrains.push_back(*it);
 			//this also sets "it" to next value
 			it=strains.erase(it);
 		}
@@ -170,7 +184,8 @@ void Mutations(){
 				mtotal++;
         		}
         		if((*it)->N<1) {
-                		(*it)->die();
+                		(*it)->die(t);
+				deadstrains.push_back(*it);
                 		//this also sets "it" to next value
                 		it=strains.erase(it);
                 		continue;
@@ -195,7 +210,8 @@ void Mutations2(){
 		for(int i=1; i<=num_mutants; i++){
                 	Mutate(*it);
         		if((*it)->N<1) {
-                		(*it)->die();
+                		(*it)->die(t);
+				deadstrains.push_back(*it);
                 		//this also sets "it" to next value
                 		it=strains.erase(it);
                 		continue;

@@ -22,7 +22,7 @@ class CStrain{
 	double sumM();
 	//double WeightedSumM(double chi(double) );
 	int count_neigh();
-	void die();
+	void die(double t=-1.);
 	void trim();
 	void trim_links();
 	CStrain *father();
@@ -42,6 +42,7 @@ class CStrain{
 	double cal_print_widths();
 	COffset &cal_offsets();
 
+	double deathtime;
 	double accN;
 	double fitness;
 	double N;
@@ -234,8 +235,9 @@ double CStrain::WeightedSumM(double chi(double) ){
 */
 // To save some memory we clean M of 
 // dead strains
-void CStrain::die(){
+void CStrain::die(double t){
 	assert(!dead);
+	deathtime=t;
 	N=0.0;
 	dead=true;
 	color=1;
