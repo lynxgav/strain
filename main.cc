@@ -82,13 +82,13 @@ double EucWeightedSumM0(CStrain *s, double chi(double) ){
         vector<CStrain*>::reverse_iterator rit;
         for(rit=deadstrains.rbegin(); rit!=deadstrains.rend(); rit++){
                 if(t-(*rit)->deathtime>lifespan)break;
-                d=(s->coord-(*it)->coord).abs();
+                d=(s->coord-(*rit)->coord).abs();
                 if(d>rmax)continue;
-                M+=chi(d)*(*it)->accN;
+                M+=chi(d)*(*rit)->accN;
         }
 
-	assert(strains.size()+deadstrains.size()==stotal);
-	assert(strains.size()+deadstrains.size()==allstrains.size());
+	//assert(strains.size()+deadstrains.size()==stotal);
+	//assert(strains.size()+deadstrains.size()==allstrains.size());
 	
         return M;
 }
