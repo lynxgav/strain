@@ -44,12 +44,17 @@ const int IDstart=1;//62300;
 double mtotal=0.;
 double mutants=0.;
 
+void print_coords(ostream &out,CStrain *s){
+	out<< t<<"    "<< s->coord <<endl;
+}
+
 void Initial_Conditions(){
 	//seed=1321702805;
 	cerr<< "Seed: "<<seed <<endl;
 	eng.seed(seed);
 	//eng.seed(10);
 	stotal=0;
+	t=dt;
 	//creating the root node
 	top=new CStrain(stotal,NULL);
 	stotal++;
@@ -57,6 +62,7 @@ void Initial_Conditions(){
 	top->M0=0.;
 	strains.push_back(top);
 	allstrains.push_back(top);
+	print_coords(coordout,top);
 	//define_cross_im();
 }
 
@@ -65,7 +71,7 @@ void Initial_Conditions(){
 
 double EucWeightedSumM0(CStrain *s, double chi(double) ){
 	vector<CStrain*>::iterator it;
-	double M=0, d=0;
+	double M=0., d=0.;
 	for(it=allstrains.begin(); it!=allstrains.end(); it++){
 		d=(s->coord-(*it)->coord).abs();
 		if(d>rmax)continue;
@@ -73,9 +79,10 @@ double EucWeightedSumM0(CStrain *s, double chi(double) ){
 	}
 	return M;
 }
+
 double EucWeightedSumM(CStrain *s, double chi(double) ){
 	list<CStrain*>::iterator it;
-	double M=0, d=0;
+	double M=0., d=0.;
 	for(it=strains.begin(); it!=strains.end(); it++){
 		d=(s->coord-(*it)->coord).abs();
 		if(d>rmax)continue;
@@ -84,13 +91,6 @@ double EucWeightedSumM(CStrain *s, double chi(double) ){
 	return M;
 }
 
-void print_coords(ostream &out){
-	vector<CStrain*>::iterator it;
-	double M=0, d=0;
-	for(it=allstrains.begin(); it!=allstrains.end(); it++){
-		out<< (*it)->coord <<endl;
-	}
-}
 
 void Immune_Selection(){
 	list<CStrain*>::iterator it;
@@ -141,8 +141,8 @@ void Mutate(CStrain *pfather){
 	CStrain *ps = new CStrain(stotal,pfather);
 
 	//ps->M0=ps->WeightedSumM0(chi_at_d);
-	ps->M0=EucWeightedSumM0(ps,chi_at_d);
 	ps->coord=pfather->coord+rand_vec<vecType>();
+	ps->M0=EucWeightedSumM0(ps,chi_at_d);
 
 	/*
 	for(size_t i=1;i<=rmax;i++){
@@ -154,6 +154,7 @@ void Mutate(CStrain *pfather){
 
 	strains.push_back(ps);
 	allstrains.push_back(ps);
+	print_coords(coordout,ps);
 
 	stotal++;
 }
@@ -211,6 +212,7 @@ void Update_Immunes(){
 	}
 }
 
+
 double Diversity(){
 	list<CStrain*>::iterator it;
 	double diversity=0.;
@@ -226,6 +228,7 @@ double Diversity(){
 	return diversity;
 }
 
+
 void Update(){
 	Immune_Selection();
 	if(iTime%inf_period==0) Genetic_Drift();
@@ -233,7 +236,7 @@ void Update(){
 	Update_Immunes();
 	//trims the dead leaves
 	//if(iTime%10==0) top->trim(); not necessary!
-	if(iTime%inf_period==0) top->make_bridges();
+	//if(iTime%inf_period==0) top->make_bridges();
 	if(print_hist) histout<<endl;
 }
 
@@ -243,16 +246,14 @@ void output(ostream &out){
 
 	list<CStrain*>::iterator it;
 	for(it=strains.begin(); it!=strains.end(); it++){
-		//cerr << (*it)->N << endl;
-		
 		assert((*it)->N>0);
 		sumAllN+=(*it)->N;	
 	}
 	out << t <<"    "<< CStrain::stotal <<"    "<< strains.size() <<"    "<< mut_rate <<"    ";
-	out << CStrain::max_dist<<"    ";
+	//out << CStrain::max_dist<<"    ";
 	//out << Diversity() <<"   ";
 	out << sumAllN <<"    ";
-	out << mtotal << "    ";
+	//out << mtotal << "    ";
 	out << endl;
 }
 
@@ -372,9 +373,10 @@ void Run(){
 		logtime<<timer.read()<<"   "<<t<<endl;
 
 		Update();
-		if(strains.size()==0) {
+		
+		if(strains.size()==0){
 			//output_graphic_tree();
-			print_coords(coordout);
+			//print_coords(coordout);
 			break;
 		}
 	

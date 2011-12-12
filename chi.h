@@ -5,7 +5,8 @@ double *chi;
 
 double chi_at_d(double d){
 	double chi;
-	chi=1./(d*d*d+1);
+	chi=exp(-d/50.)/(d+1.);
+	//chi=4./(d+4.);
 
 	return chi;
 }
