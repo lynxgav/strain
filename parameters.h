@@ -1,7 +1,7 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
-size_t rmax=100;
+size_t rmax=15;
 const int N0=10;
 const double Npop=1e+6;
 const double R0=1.2;
@@ -15,7 +15,7 @@ const double f0=nu*(R0-1.); // beta-nu 1.7
 const double beta0=beta/(Npop*(beta-nu)); // 0.00001/f0
 const double dt=1./365.;
 const double tMax=1000.;
-const double lifespan=5.;
+const double lifespan=15.;
 
 // ./plot.sh [0:10] 1:2 single00*
 

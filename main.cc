@@ -61,6 +61,7 @@ void Initial_Conditions(){
 	stotal++;
 	top->N=N0;
 	top->M0=0.;
+	top->birthtime=t;
 	strains.push_back(top);
 	allstrains.push_back(top);
 	print_coords(coordout,top);
@@ -81,7 +82,7 @@ double EucWeightedSumM0(CStrain *s, double chi(double) ){
 
         vector<CStrain*>::reverse_iterator rit;
         for(rit=deadstrains.rbegin(); rit!=deadstrains.rend(); rit++){
-                if(t-(*rit)->deathtime>lifespan)break;
+                //if(t-(*rit)->deathtime>lifespan)break;
                 d=(s->coord-(*rit)->coord).abs();
                 if(d>rmax)continue;
                 M+=chi(d)*(*rit)->accN;
@@ -157,6 +158,7 @@ void Mutate(CStrain *pfather){
 	//ps->M0=ps->WeightedSumM0(chi_at_d);
 	ps->coord=pfather->coord+rand_vec<vecType>();
 	ps->M0=EucWeightedSumM0(ps,chi_at_d);
+	ps->birthtime=t;
 
 	/*
 	for(size_t i=1;i<=rmax;i++){

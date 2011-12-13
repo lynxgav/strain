@@ -42,6 +42,7 @@ class CStrain{
 	double cal_print_widths();
 	COffset &cal_offsets();
 
+	double birthtime;
 	double deathtime;
 	double accN;
 	double fitness;
@@ -238,6 +239,8 @@ double CStrain::WeightedSumM(double chi(double) ){
 void CStrain::die(double t){
 	assert(!dead);
 	deathtime=t;
+	//assert(deathtime-birthtime<lifespan);
+	//ERROR(deathtime-birthtime<lifespan,"strain lifetime < lifespan");
 	N=0.0;
 	dead=true;
 	color=1;

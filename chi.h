@@ -5,8 +5,14 @@ double *chi;
 
 double chi_at_d(double d){
 	double chi;
-	chi=exp(-d/50.)/(d+1.);
+	//chi=exp(-d/50.)/(d+1.);
+	chi=1./(d+1.);
 	//chi=4./(d+4.);
+	//chi=0.5;
+	//chi=2./10.+(1.-2./10.)/(1.+5./3.*exp(9./2.*(d-2.))); //goes to constant
+	//chi=2./10.+(1.-2./10.)/(1.+5./3.*exp(9./2.*(d-2.))); //goes to constant
+	//chi=1./(1.+exp(9./2.*(d-4.))); //goes to zero
+	//chi=1./(1.+exp(3./2.*(d-2.)));
 
 	return chi;
 }
