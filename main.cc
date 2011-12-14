@@ -44,6 +44,9 @@ double chi_at_d(double d){
 	double chi;
 	chi=1./(d+1);
 
+	//if(d<=4) {chi=1.;}
+	//else {chi=0.;}
+
 	return chi;
 }
 
@@ -171,6 +174,12 @@ void Initial_Conditions(){
 //and add to the list
 
 void Immune_Selection(){
+
+	double	beta=beta_mean*(1.+amp*cos(2.*M_PI*t));
+
+	double f0=beta-nu;
+	double beta0=beta/(Npop*(beta-nu));
+
 	list<CStrain*>::iterator it;
 	//applying to all strains
 	for(it=strains.begin(); it!=strains.end(); it++){
@@ -181,6 +190,7 @@ void Immune_Selection(){
 	}
 }
 
+//beta(t)=beta0*(1+beta1*cos(2*pi*t))
 
 void Genetic_Drift(){
 	//applying to all strains
