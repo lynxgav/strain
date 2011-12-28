@@ -1,10 +1,10 @@
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 
-size_t rmax=10000;
+size_t rmax=10;
 const int N0=10;
 const double Npop=1e+6;
-const double R0=1.2;
+const double R0=1.1;
 const unsigned int inf_period=4;
 const double nu=365.0/(double)inf_period; // units 1/year
 const int L=120; // 60 epitope codons in the HA1 domain?
@@ -15,6 +15,7 @@ const double f0=nu*(R0-1.); // beta-nu 1.7
 const double beta0=beta/(Npop*(beta-nu)); // 0.00001/f0
 const double dt=1./365.;
 const double tMax=1000.;
+const double cp=0.01;
 
 // ./plot.sh [0:10] 1:2 single00*
 

@@ -170,13 +170,23 @@ void Initial_Conditions(){
 //create a new strain through mutation
 //and add to the list
 
+double Nall(){
+	double all=0.;
+	list<CStrain*>::iterator it;
+	for(it=strains.begin(); it!=strains.end(); it++){
+		all+=(*it)->N;
+	}
+	return all;
+}
+
 void Immune_Selection(){
+	double All=Nall();
 	list<CStrain*>::iterator it;
 	//applying to all strains
 	for(it=strains.begin(); it!=strains.end(); it++){
 		CStrain *s=(*it);
 		s->M0+=s->WeightedSumM(chi_at_d)*nu*dt;
-		s->fitness=f0*(1-beta0*s->M0);
+		s->fitness=f0*(1-beta0*s->M0)-All*cp;
 		s->N=s->N*(1+s->fitness*dt);//make sure about the order of update N and M
 	}
 }
@@ -284,6 +294,7 @@ void Update_Immunes(){
 		(*it)->accN+=nu*dt*(*it)->N;
 	}
 }
+
 
 double Diversity(){
 	list<CStrain*>::iterator it;
