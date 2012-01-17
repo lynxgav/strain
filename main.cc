@@ -47,6 +47,10 @@ double chi_at_d(double d){
 	return chi;
 }
 
+double chi0 (double d){
+	return 0.;
+}
+
 void define_cross_im(){
 
 	chi=new double[rmax+1];
@@ -160,7 +164,8 @@ void Initial_Conditions(){
 	//creating the root node
 	top=new CStrain(stotal,NULL);
 	stotal++;
-	top->N=N0;
+	top->N=5000.;
+	top->S=Npop-top->N;
 	top->M0=0.;
 	strains.push_back(top);
 	allstrains.push_back(top);
@@ -173,12 +178,26 @@ void Initial_Conditions(){
 void Immune_Selection(){
 	list<CStrain*>::iterator it;
 	//applying to all strains
-	for(it=strains.begin(); it!=strains.end(); it++){
-		CStrain *s=(*it);
-		s->M0+=s->WeightedSumM(chi_at_d)*nu*dt;
-		s->fitness=f0*(1-beta0*s->M0);
-		s->N=s->N*(1+s->fitness*dt);//make sure about the order of update N and M
+	
+
+	vector<CStrain*>::iterator itt;
+
+	for(itt=allstrains.begin(); itt!=allstrains.end(); itt++){
+		CStrain *s=(*itt);
+		//s->M0+=s->WeightedSumM(chi_at_d)*nu*dt;
+		//s->fitness=f0*(1-beta0*s->M0);
+		//s->N=s->N*(1+s->fitness*dt);//make sure about the order of update N and M
+		s->dN=0;
+		s->dS=0;
+		if(!s->dead) s->dN=dt*s->N*(beta/Npop*s->WeightedSumS(chi_at_d)-nu);
+		s->dS=dt*(-s->S*beta/Npop*s->WeightedSumN(chi_at_d)+nu*s->N);
+		if(s->S<0.){ cout<<s->S<<endl;}
 	}
+	double sn=0, ss=0;
+	for(itt=allstrains.begin(); itt!=allstrains.end(); itt++){
+	(*itt)->update_NS();
+	}
+
 }
 
 
@@ -195,18 +214,35 @@ void Genetic_Drift(){
 
 		if(rnd<1) {
 			//cerr << "random number smaller than 1" << "    " << rnd << "    " << endl;
+			(*it)->S+=(*it)->N;
 			(*it)->die();
 			//this also sets "it" to next value
 			it=strains.erase(it);
 		}
+		
 		else{
-			(*it)->N=rnd;
+			double	dif=(*it)->N-rnd;
+
+			if(dif<0.) dif=-min((*it)->S,abs(dif));
+
+			(*it)->N-=dif;
+			(*it)->S+=dif;
 			//cerr << (*it)->N << endl;
 			it++;
 		}
+		
 	}
-
 	
+	vector<CStrain*>::iterator itt;
+
+	/*for(itt=allstrains.begin(); itt!=allstrains.end(); itt++){
+		CStrain *s=(*itt);
+		//s->M0+=s->WeightedSumM(chi_at_d)*nu*dt;
+		//s->fitness=f0*(1-beta0*s->M0);
+		//s->N=s->N*(1+s->fitness*dt);//make sure about the order of update N and M
+		if(0.<s->S<1.) s->S=0.;
+	}*/
+
 	//for(it=strains.begin(); it!=strains.end(); it++){
 	//	cerr << (*it)->N << endl;
 	//}
@@ -216,7 +252,7 @@ void Genetic_Drift(){
 void Mutate(CStrain *pfather){
 	CStrain *ps = new CStrain(stotal,pfather);
 
-	ps->M0=ps->WeightedSumM0(chi_at_d);
+	//ps->M0=ps->WeightedSumM0(chi_at_d);
 
 	/*
 	for(size_t i=1;i<=rmax;i++){
@@ -268,12 +304,15 @@ void Mutations2(){
 		for(int i=1; i<=num_mutants; i++){
                 	Mutate(*it);
         		if((*it)->N<1) {
-                		(*it)->die();
-                		//this also sets "it" to next value
-                		it=strains.erase(it);
                 		continue;
             		}
         	}
+		if((*it)->N<1) {
+			(*it)->S+=(*it)->N;
+                	(*it)->die();
+                	//this also sets "it" to next value
+                	it=strains.erase(it);
+            	}
         	it++;
     	}
 }
@@ -301,18 +340,20 @@ double Diversity(){
 }
 
 void Update(){
+	//Mutations2();
 	Immune_Selection();
-	if(iTime%inf_period==0) Genetic_Drift();
+	//if(iTime%inf_period==0) Genetic_Drift();
 	Mutations2();
-	Update_Immunes();
+	//Update_Immunes();
 	//trims the dead leaves
 	//if(iTime%10==0) top->trim(); not necessary!
-	if(iTime%inf_period==0) top->make_bridges();
+	//if(iTime%inf_period==0) top->make_bridges();
 }
 
 void output(ostream &out){
 
 	double sumAllN=0.;
+	double sumAllS=0.;
 
 	list<CStrain*>::iterator it;
 	for(it=strains.begin(); it!=strains.end(); it++){
@@ -321,11 +362,29 @@ void output(ostream &out){
 		assert((*it)->N>0);
 		sumAllN+=(*it)->N;	
 	}
+
+	
+
+	vector<CStrain*>::iterator itt;
+	for(itt=allstrains.begin(); itt!=allstrains.end(); itt++){
+		//cerr << (*it)->N << endl;
+		sumAllS+=(*itt)->S;	
+	}
+
+	/*
+	double factor=Npop/(sumAllN+sumAllS);
+	
+	for(itt=allstrains.begin(); itt!=allstrains.end(); itt++){
+		//cerr << (*it)->N << endl;
+		(*itt)->S*=factor;
+		(*itt)->N*=factor;	
+	}*/
+
 	out << t <<"    "<< CStrain::stotal <<"    "<< strains.size() <<"    "<< mut_rate <<"    ";
-	out << CStrain::max_dist<<"    ";
+	out << sumAllN<<"    ";
 	//out << Diversity() <<"   ";
-	out << sumAllN <<"    ";
-	out << mtotal << "    ";
+	out << sumAllS <<"    ";
+	out << sumAllN+sumAllS << "    ";
 	out << endl;
 }
 
