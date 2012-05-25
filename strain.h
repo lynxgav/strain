@@ -122,10 +122,10 @@ CStrain* CStrain::father(){
 }
 
 void CStrain::setFreq(double f,double tt){
-	  int max_bin=(nbins-1)*maxFreq;
-	  if( max_bin==(nbins-1) && notfixed){ fixtime=tt; notfixed=false;}
           Freq=f;
           if(Freq>maxFreq)maxFreq=Freq;
+	  int max_bin=(nbins-1)*maxFreq;
+	  if( max_bin==(nbins-1) && notfixed){ fixtime=tt; notfixed=false;}
 }
 
 //Returns the sum of N of all strains at distances up to rmax

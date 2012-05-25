@@ -53,7 +53,7 @@ unsigned int iTime=0;
 //Cross immunity matrix
 double *chi;
 const unsigned int Nfiles=1000;
-const int IDstart=40000;
+const int IDstart=4000;
 double mtotal=0.;
 double mutants=0.;
 
@@ -188,7 +188,7 @@ void Initial_Conditions(){
 		
 		NTrackedFiles=TrackedIDs.size();
 		trackedouts=new ofstream [NTrackedFiles];
-		for(int i=0; i<TrackedIDs.size(); i++){
+		for(unsigned int i=0; i<TrackedIDs.size(); i++){
 		        string name ="tracked"+stringify(i,5,'0');
                 	trackedouts[i].open(name.c_str());
 
@@ -213,6 +213,9 @@ void Initial_Conditions(){
 	top->cost=0.;
 	strains.push_back(top);
 	allstrains.push_back(top);
+
+	double Ntot=top->N;
+	top->fitness=f0*(1-beta0*top->M0*Ntot*cp) - top->cost;
 	//define_cross_im();
 }
 
@@ -338,7 +341,10 @@ void Mutate(CStrain *pfather){
 	if(ii==2) {ps->mut_type = 2;} //blue
 	if(ii<0) {cerr<<"Error in Mutate function"<<endl;}
 
+	double Ntot=Nall();
+
 	ps->M0=ps->WeightedSumM0(chi_at_d);
+	ps->fitness=f0*(1-beta0*ps->M0*Ntot*cp) - ps->cost;
 	ps->crtime=t;
 
 	/*
@@ -346,9 +352,9 @@ void Mutate(CStrain *pfather){
 		ps->M[i]=pfather->M[i-1];
 	}
 	*/
+	//if(ps->ID==4841) {cerr<< t << "  " << ps->N << "  BIRTH" << endl; cerr<< pfather->N << "  Father" << endl;}
 
 	pfather->N--;
-
 	strains.push_back(ps);
 	allstrains.push_back(ps);
 
@@ -382,23 +388,31 @@ void Mutations2(){
 	list<CStrain*>::iterator it=strains.begin();
 	mtotal=0.;
 	while(it!=strains.end()) {
+
+
 		double nn=(*it)->N;
 		std::tr1::poisson_distribution<double> poisson( mut_rate*nn );
 		double rnd = poisson(eng);
 		int num_mutants = min(rnd,nn);
 
+		if((*it)->crtime!=t){
+
 		mtotal+=num_mutants;
 		//cerr << "number of mutants" << "    " << rnd << "    " << endl;
+
 		for(int i=1; i<=num_mutants; i++){
                 	Mutate(*it);
+			//if((*it)->ID==4841) {cerr<< t << "  " << (*it)->N << "  MUTATE" << endl;}
         		if((*it)->N<1) {
 				//cout<<(*it)->fitness<<endl;
+				//if((*it)->ID==4841) {cerr<< t << "  " << (*it)->N << "  DIE" << endl;}
                 		(*it)->die();
                 		//this also sets "it" to next value
                 		it=strains.erase(it);
                 		continue;
             		}
         	}
+		}
         	it++;
     	}
 }
@@ -449,6 +463,7 @@ void output(ostream &out){
 
 	for(it=allstrains.begin(); it!=allstrains.end(); it++){
 		(*it)->setFreq((*it)->SubN/totalN,t);
+		//if((*it)->ID==6946 & (*it)->notfixed) cerr<< t << " " << (*it)->SubN << "  " << totalN << "  " << (*it)->maxFreq << "  " << (*it)->fixtime << endl;
 	}
 
 	out << t << "    " << CStrain::stotal << "    " << strains.size() << "    " << average_red_m() << "    " << average_cost() << "    " << CStrain::max_dist << "    " << Nall() << endl;
@@ -614,13 +629,13 @@ void print_recovered(ostream &out){
 //otherwise -1
 int tracked_index(unsigned int id){
 	
-	for(int i=0; i<NTrackedFiles; i++){
+	for(unsigned int i=0; i<NTrackedFiles; i++){
 	if(TrackedIDs.at(i)==id) return i;
 	}
 	return -1;
 }
 
-void PrintTracked(){
+void PrintTrackedStrain(){
 
 	list<CStrain*>::iterator it;
 	double Ntot=Nall();
@@ -640,10 +655,41 @@ void PrintTracked(){
 			double mean_fitness_subtree=weighsumf/subtrN;
 			double mean_fitness_rest=(mean_fitness-mean_fitness_subtree*subtrN/Ntot)*Ntot/(Ntot-subtrN);
 
-			trackedouts[ind] << t << "    " << strains.size() << "    " << subtrN << "    " << (*it)->N << "    " << (*it)->fitness << "    " << mean_fitness << "    " << mean_fitness_subtree << "    " << mean_fitness_rest << endl;
+			trackedouts[ind] << t << "    " << (*it)->fitness - mean_fitness << "    " << mean_fitness_subtree-mean_fitness_rest <<endl;
+
 		}
 	}
 }
+
+void PrintTrackedAllele(){
+
+	list<CStrain*>::iterator it;
+	vector<CStrain*>::iterator itt;
+	double Ntot=Nall();
+	double mean_fitness=0.;
+
+	for(it=strains.begin(); it!=strains.end(); it++){
+		mean_fitness+=(*it)->fitness*(*it)->N/Ntot;
+	}
+
+	for(itt=allstrains.begin(); itt!=allstrains.end(); itt++){
+		int ind=tracked_index((*itt)->ID);
+		if(ind>=0 && (*itt)->notfixed){
+
+			double weighsumf=0., subtrN=0.;
+			(*itt)->calSubMeanFitness(weighsumf, subtrN);
+
+			double mean_fitness_subtree=weighsumf/subtrN;
+			double mean_fitness_rest=(mean_fitness-mean_fitness_subtree*subtrN/Ntot)*Ntot/(Ntot-subtrN);
+
+			trackedouts[ind] << t << "    " << mean_fitness_subtree-mean_fitness_rest <<endl;
+
+		}
+	}
+}
+
+
+//strains.size() << "    " << subtrN << "    " << (*it)->N << "    " << mean_fitness_subtree << "    " << mean_fitness_rest << "    " <<
 
 ofstream singleouts[Nfiles];
 
@@ -666,7 +712,7 @@ void PrintSingleInfected(){
 			double mean_fitness_subtree=weighsumf/subtrN;
 			double mean_fitness_rest=(mean_fitness-mean_fitness_subtree*subtrN/Ntot)*Ntot/(Ntot-subtrN);
 
-			singleouts[(*it)->ID-IDstart] << t << "    " << strains.size() << "    " << subtrN << "    " << (*it)->N << "    " << (*it)->fitness << "    " << mean_fitness << "    " << mean_fitness_subtree << "    " << mean_fitness_rest << endl;
+			singleouts[(*it)->ID-IDstart] << t << "    " << strains.size() << "    " << subtrN << "    " << (*it)->N << "    " << (*it)->fitness << "    " << mean_fitness << "    " << mean_fitness_subtree << "    " << mean_fitness_rest << "    " << mean_fitness_subtree-mean_fitness_rest <<endl;
 		}
 	}
 }
@@ -713,10 +759,13 @@ void Run(){
 	ofstream outrecovered("recovered");
 	ofstream outN("N");
 	int s=0;
+	
+	/*
 	for(size_t i=0; i<Nfiles; i++){
 		string name ="single"+stringify(i,5,'0');
 		singleouts[i].open(name.c_str());
 	}
+	*/
 
 	unsigned int iTimeMax=tMax/dt;
 	for(iTime=1; iTime<=iTimeMax; iTime++){
@@ -750,9 +799,9 @@ void Run(){
 		
 		//if(iTime%(inf_period*7)==0 and t >= 20.)
 
-		//PrintSingleInfected();
-		PrintTracked();
 		output(out);
+		if(secondrun) PrintTrackedAllele();
+		//PrintSingleInfected();
 		//print_diversity(outdiv);
 		//print_fitness(outfit);
 		//print_N(outN);
