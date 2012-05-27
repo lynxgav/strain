@@ -681,8 +681,9 @@ void PrintTrackedAllele(){
 
 			double mean_fitness_subtree=weighsumf/subtrN;
 			double mean_fitness_rest=(mean_fitness-mean_fitness_subtree*subtrN/Ntot)*Ntot/(Ntot-subtrN);
+			double selec_coef=mean_fitness_subtree-mean_fitness_rest;
 
-			trackedouts[ind] << t << "    " << mean_fitness_subtree-mean_fitness_rest <<endl;
+			trackedouts[ind] << t << "    " << selec_coef <<endl;
 
 		}
 	}
