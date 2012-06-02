@@ -663,30 +663,30 @@ void PrintTrackedStrain(){
 
 void PrintTrackedAllele(){
 
-	list<CStrain*>::iterator it;
-	vector<CStrain*>::iterator itt;
-	double Ntot=Nall();
-	double mean_fitness=0.;
+    list<CStrain*>::iterator it;
+    vector<CStrain*>::iterator itt;
+    double Ntot=Nall();
+    double mean_fitness=0.;
 
-	for(it=strains.begin(); it!=strains.end(); it++){
-		mean_fitness+=(*it)->fitness*(*it)->N/Ntot;
-	}
+    for(it=strains.begin(); it!=strains.end(); it++){
+        mean_fitness+=(*it)->fitness*(*it)->N/Ntot;
+    }
 
-	for(itt=allstrains.begin(); itt!=allstrains.end(); itt++){
-		int ind=tracked_index((*itt)->ID);
-		if(ind>=0 && (*itt)->notfixed){
+    for(itt=allstrains.begin(); itt!=allstrains.end(); itt++){
+        int ind=tracked_index((*itt)->ID);
+        if(ind>=0 && (*itt)->notfixed){
 
-			double weighsumf=0., subtrN=0.;
-			(*itt)->calSubMeanFitness(weighsumf, subtrN);
+            double weighsumf=0., subtrN=0.;
+            (*itt)->calSubMeanFitness(weighsumf, subtrN);
 
-			double mean_fitness_subtree=weighsumf/subtrN;
-			double mean_fitness_rest=(mean_fitness-mean_fitness_subtree*subtrN/Ntot)*Ntot/(Ntot-subtrN);
-			double selec_coef=mean_fitness_subtree-mean_fitness_rest;
+            double mean_fitness_subtree=weighsumf/subtrN-mean_fitness;
+            //double mean_fitness_rest=(mean_fitness-mean_fitness_subtree*subtrN/Ntot)*Ntot/(Ntot-subtrN);
+            double selec_coef=mean_fitness_subtree*(1.+subtrN/(Ntot-subtrN));
 
-			trackedouts[ind] << t << "    " << selec_coef <<endl;
+            trackedouts[ind] << t << "    " << selec_coef <<endl;
 
-		}
-	}
+        }
+    }
 }
 
 
