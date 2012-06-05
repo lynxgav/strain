@@ -458,9 +458,6 @@ void Immune_Selection(){
 	print_N();
 	print_diversity();
 	print_out();
-	if(secondrun) PrintTrackedAllele();
-	if(secondrun) PrintTrackedStrain();
-	PrintSingleInfected();
 	
 	for(it=strains.begin(); it!=strains.end(); it++){
 		CStrain *s=(*it);
@@ -821,6 +818,9 @@ void Run(){
 
 		Update();
 
+		if(secondrun) PrintTrackedAllele();
+		if(secondrun) PrintTrackedStrain();
+		PrintSingleInfected();
 		if( iTime%365==0 ) print_recovered(outrecovered);
 
 		
