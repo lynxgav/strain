@@ -60,4 +60,7 @@ const int maxmut=1000;
 //mplayer N_distribution.avi -loop 5
 //mplayer N_distribution.avi -speed 0.5
 
+// ./strain 4 or ./strain 4 0 1st run
+// ./strain 4 1 2nd run
+
 #endif /* PARAMETERS_H */

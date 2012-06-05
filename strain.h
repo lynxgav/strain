@@ -45,6 +45,7 @@ class CStrain{
 	unsigned int red_m;
 	double cost;
 	double N;
+	double dN;
 	int ID;
 	double crtime;
 	double fixtime;
@@ -78,6 +79,7 @@ CStrain::CStrain(int i, CStrain *f, double im_d){
 	stotal++;
 	ID=i;
 	N=0.0;
+	dN=0.;
 	fitness=0.0;
 	accN=0.0;
 	M0=0.0;
