@@ -41,6 +41,7 @@ class CStrain{
 	double Freq, maxFreq;
 	double SubN;
 	double accN;
+	vector<double> Rec, tRec;
 	double fitness;
 	unsigned int red_m;
 	double cost;
@@ -138,6 +139,7 @@ void CStrain::setFreq(double f,double tt){
 double CStrain::WeightedSumM0(double chi(double), double distance, CStrain *exclude){
 	if(distance>=rmax) return 0;
 	//if(distance>max_dist)max_dist=distance;
+	
 	double weightedsum=chi(distance)*accN;
 
 	

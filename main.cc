@@ -446,7 +446,7 @@ void Immune_Selection(){
 
 	for(it=strains.begin(); it!=strains.end(); it++){
 		CStrain *s=(*it);
-		s->M0+=s->WeightedSumM(chi_at_d)*nu*dt;
+		s->M0=s->WeightedSumM0(chi_at_d);
 		//s->fitness=f0*(1-beta0*s->M0*Nall()*cp) - s->red_m*Cf;
 		s->fitness=f0*(1-beta0*s->M0*Ntot*cp) - s->cost;
 		s->dN=1+s->fitness*dt;
@@ -618,11 +618,31 @@ void Mutations2(){
 double infperyear=0.;
 //int iin=0;
 
+/*
 void Update_Immunes(){
 	list<CStrain*>::iterator it;
 	for(it=strains.begin(); it!=strains.end(); it++){
 		(*it)->accN+=nu*dt*(*it)->N;
 		infperyear+=nu*dt*(*it)->N;
+	}
+
+	//if (t>=40. && t<=41.) {iin++;}
+}
+*/
+
+void Update_Immunes(){
+        list<CStrain*>::iterator it;
+        for(it=strains.begin(); it!=strains.end(); it++){
+        	(*it)->Rec.push_back(nu*dt*(*it)->N);
+        	(*it)->tRec.push_back(t);
+		infperyear+=nu*dt*(*it)->N;
+        }
+
+        for(it=strains.begin(); it!=strains.end(); it++){
+		(*it)->accN=0;
+                for(unsigned int i=0; i<(*it)->Rec.size(); i++){
+                	(*it)->accN+=(*it)->Rec.at(i);
+		}
 	}
 
 	//if (t>=40. && t<=41.) {iin++;}
